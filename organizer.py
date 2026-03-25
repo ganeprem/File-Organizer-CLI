@@ -14,7 +14,7 @@ def get_category(filename):
             return category
     return "Others"
 
-def organize_folder(folder_path):
+def organize_folder(folder_path, dry_run = False):
     if not os.path.isdir(folder_path):
         print("Invalid directory")
         return
@@ -22,7 +22,7 @@ def organize_folder(folder_path):
 
     for item in os.listdir(folder_path):
 
-        if item in CATEGORIES or item == "Others":
+        if item.startswith(".") or item in CATEGORIES or item == "Others":
             continue
 
         item_path = os.path.join(folder_path, item)
@@ -33,14 +33,14 @@ def organize_folder(folder_path):
             target_dir = os.path.join(folder_path, category)
 
             os.makedirs(target_dir, exist_ok=True)
-            shutil.move(item_path, os.path.join(target_dir, item))
+            move_file(item_path, os.path.join(target_dir, item), dry_run)
 
     print("Organization complete.")
-    for category, c in count.items():
-        print(f"{category}: {c} moved")
+    for category in sorted(count):
+        print(f"{category}: {count[category]} moved")
 
 
-def undo(folder_path):
+def undo(folder_path, dry_run = False):
     count = 0
     for category in list(CATEGORIES.keys()) + ["Others"]:
         category_path = os.path.join(folder_path, category)
@@ -49,17 +49,30 @@ def undo(folder_path):
             for file in os.listdir(category_path):
                 src = os.path.join(category_path, file)
                 dst = os.path.join(folder_path, file)
-                shutil.move(src, dst)
-                count = count + 1
+                move_file(src, dst, dry_run)
+                count += 1
                 
-        # remove empty folder
-            if not os.listdir(category_path):
-                os.removedirs(category_path)
+            # remove empty folder
+            if not dry_run and not os.listdir(category_path):
+                os.rmdir(category_path)
     print(f"{count} files moved.")
+
+
+def move_file(src, dst, dry_run):
+    if os.path.exists(dst):
+        print(f"Skipping {src}, destination exists: {dst}")
+        return
+
+    if dry_run:
+        print(f"Would move {src} -> {dst}")
+    else:
+        shutil.move(src, dst)
+
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Organize files by type")
+    parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
         "command", 
         nargs="?", 
@@ -69,7 +82,8 @@ if __name__ == "__main__":
     parser.add_argument("path", help="Path to the folder")
 
     args = parser.parse_args()
+
     if args.command == "organize":
-        organize_folder(args.path)
+        organize_folder(args.path, dry_run = args.dry_run)
     elif args.command == "undo":
-        undo(args.path)
+        undo(args.path, dry_run = args.dry_run)
