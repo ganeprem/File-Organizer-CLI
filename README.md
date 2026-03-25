@@ -14,5 +14,5 @@ python organizer.py <folder_path>
 python organizer.py ./test_folder
 python organizer.py <folder_path>
 
-##Undo organization:
+## Undo organization:
 python undo.py <folder_path>
