@@ -12,3 +12,7 @@ python organizer.py <folder_path>
 
 ## Example
 python organizer.py ./test_folder
+python organizer.py <folder_path>
+
+##Undo organization:
+python undo.py <folder_path>
