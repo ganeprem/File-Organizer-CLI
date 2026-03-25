@@ -32,7 +32,11 @@ def organize_folder(folder_path, dry_run = False):
             count[category] = count.get(category, 0) + 1
             target_dir = os.path.join(folder_path, category)
 
-            os.makedirs(target_dir, exist_ok=True)
+            if dry_run and not os.path.exists(target_dir):
+                    print(f"Would create directory: {target_dir}")
+            else:
+                os.makedirs(target_dir, exist_ok=True)
+
             move_file(item_path, os.path.join(target_dir, item), dry_run)
 
     print("Organization complete.")
